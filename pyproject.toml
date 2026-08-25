@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oncocare-automated-tumor-board"
+version = "1.0.0"
+description = "Autonomous Molecular Tumor Board & Clinical Trial Matching Automated System."
+readme = "README.md"
+authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+mtb-orchestrator = "mtb_orchestrator.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/abusuraihsakhri/oncocare-automated-tumor-board"
+Repository = "https://github.com/abusuraihsakhri/oncocare-automated-tumor-board.git"

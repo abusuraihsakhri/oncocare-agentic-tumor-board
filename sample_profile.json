@@ -1,0 +1,28 @@
+{
+  "case_id": "MTB-2026-0042",
+  "diagnosis": "Metastatic Non-Small Cell Lung Cancer (Adenocarcinoma)",
+  "stage": "Stage IVB (Brain & Bone metastases)",
+  "ecog_ps": 1,
+  "prior_therapies": [
+    "Carboplatin + Pemetrexed (4 cycles)"
+  ],
+  "somatic_variants": [
+    {
+      "gene": "KRAS",
+      "alteration": "G12C",
+      "variant_allele_freq": 0.42
+    },
+    {
+      "gene": "TP53",
+      "alteration": "R273H",
+      "variant_allele_freq": 0.38
+    }
+  ],
+  "tmb_mut_per_mb": 12.4,
+  "msi_status": "MSS",
+  "current_medications": [
+    "Omeprazole 20mg daily",
+    "Dexamethasone 2mg daily",
+    "Amlodipine 5mg daily"
+  ]
+}
