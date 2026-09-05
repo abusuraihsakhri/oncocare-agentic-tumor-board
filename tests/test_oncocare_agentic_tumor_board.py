@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from agents.base import PHIGuard, AuditLogger, SecurityException
+from agents.base import PHIGuard, AuditLogger, AuditTrail, SecurityException
 from agents.models import SystemTaskPayload, UrgencyLevel, SystemIntegrityStatus
 from agents.workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from agents.supervisor import SystemSupervisor
@@ -63,3 +63,73 @@ def test_supervisor_consensus_and_audit():
     assert main(["audit", "--task-id", "CLI-TEST-01"]) == 0
     assert main(["chat", "Explain", "specifications"]) == 0
     assert main(["verify-audit"]) == 0
+
+
+def test_audit_trail_signature_verification():
+    """Verify that audit trail integrity check validates cryptographic signatures."""
+    audit = AuditTrail(secret_key="test-key-for-unit-testing-only")
+
+    # Log some entries
+    audit.log("test_actor", "test_tier", "TEST_EVENT", {"data": "test1"})
+    audit.log("test_actor", "test_tier", "TEST_EVENT", {"data": "test2"})
+    audit.log("test_actor", "test_tier", "TEST_EVENT", {"data": "test3"})
+
+    # Verify integrity passes for valid trail
+    assert audit.verify_integrity() is True
+
+    # Verify chain linkage
+    assert len(audit.logs) == 3
+    assert audit.logs[0]["prev_hash"] == "GENESIS_BLOCK_0000000000000000"
+    assert audit.logs[1]["prev_hash"] == audit.logs[0]["current_hash"]
+    assert audit.logs[2]["prev_hash"] == audit.logs[1]["current_hash"]
+
+
+def test_audit_trail_tamper_detection():
+    """Verify that tampering with audit entries is detected."""
+    audit = AuditTrail(secret_key="test-key-for-tamper-detection")
+
+    audit.log("actor", "tier", "EVENT", {"data": "original"})
+
+    # Tamper with the entry
+    audit.logs[0]["payload_hash"] = "tampered_hash"
+
+    # Integrity check should fail
+    assert audit.verify_integrity() is False
+
+
+def test_audit_trail_secret_key_validation():
+    """Verify that short or missing secret keys are rejected."""
+    # Too short key
+    with pytest.raises(ValueError, match="at least 16 characters"):
+        AuditTrail(secret_key="short")
+
+    # Missing key (no env var set)
+    import os
+    original = os.environ.pop("AUDIT_SECRET_KEY", None)
+    try:
+        with pytest.raises(ValueError, match="AUDIT_SECRET_KEY must be provided"):
+            AuditTrail()
+    finally:
+        if original:
+            os.environ["AUDIT_SECRET_KEY"] = original
+
+
+def test_phi_guard_email_detection():
+    """Verify PHI guard detects email addresses."""
+    with pytest.raises(SecurityException):
+        PHIGuard.assert_no_phi("Contact patient at john.doe@hospital.org")
+
+
+def test_phi_guard_ssn_detection():
+    """Verify PHI guard detects SSN patterns."""
+    with pytest.raises(SecurityException):
+        PHIGuard.assert_no_phi("Patient SSN: 123-45-6789")
+
+
+def test_phi_redaction():
+    """Verify PHI redaction works correctly."""
+    text = "Patient MRN-123456 has appointment. Contact: john@email.com"
+    redacted = PHIGuard.redact_phi(text)
+    assert "MRN-123456" not in redacted
+    assert "john@email.com" not in redacted
+    assert "[REDACTED_IDENTIFIER]" in redacted
