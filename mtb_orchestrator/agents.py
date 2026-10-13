@@ -24,6 +24,33 @@ ACTIONABLE_TARGETS = {
 }
 
 # SYNTHETIC TRIAL EXAMPLES: not real clinical-trial registry records.
+# This site map is a limited demonstration guard, not a complete indication database.
+TUMOR_SITE_RULES = {
+    ("EGFR", "L858R"): {"lung"},
+    ("EGFR", "EXON 19 DEL"): {"lung"},
+    ("KRAS", "G12C"): {"lung", "colorectal"},
+    ("BRAF", "V600E"): {"melanoma", "colorectal"},
+    ("BRCA1", "PATHOGENIC"): {"breast", "ovarian", "pancreatic", "prostate"},
+    ("BRCA2", "PATHOGENIC"): {"breast", "ovarian", "pancreatic", "prostate"},
+    ("PIK3CA", "H1047R"): {"breast"},
+    ("ERBB2", "AMPLIFICATION"): {"breast"},
+}
+
+
+def tumor_site(diagnosis: str) -> str:
+    text = diagnosis.lower()
+    for label, normalized in (
+        ("nsclc", "lung"), ("lung", "lung"),
+        ("colorectal", "colorectal"), ("colon", "colorectal"), ("rectal", "colorectal"),
+        ("melanoma", "melanoma"), ("breast", "breast"),
+        ("ovarian", "ovarian"), ("ovary", "ovarian"),
+        ("pancrea", "pancreatic"), ("prostat", "prostate"),
+    ):
+        if label in text:
+            return normalized
+    return "unmapped"
+
+
 CLINICAL_TRIALS_DB = [
     ClinicalTrialRecord("DEMO-KRAS-001", "Phase 2 Study of Next-Gen KRAS G12C Inhibitor + Anti-PD1 in Refractory Solid Tumors", "Phase 2", ["KRAS G12C"], ["Non-Small Cell Lung Cancer", "Colorectal"]),
     ClinicalTrialRecord("DEMO-BRAF-002", "Phase 1b Dose Escalation of Novel Pan-RAF Inhibitor in BRAF V600E/K Carcinomas", "Phase 1b", ["BRAF V600E"], ["All Solid Tumors", "Melanoma", "Colorectal"]),
@@ -40,6 +67,7 @@ class GenomicVariantTriageAgent:
         tier_1 = []
         tier_2 = []
 
+        site = tumor_site(profile.diagnosis)
         for var in profile.somatic_variants:
             gene_upper = var.gene.strip().upper()
             alt_upper = var.alteration.strip().upper()
@@ -47,15 +75,21 @@ class GenomicVariantTriageAgent:
             matched = False
             for (g, a), (tier, therapies) in ACTIONABLE_TARGETS.items():
                 # Exact alteration match prevents accidental substring matches.
-                if g == gene_upper and a == alt_upper:
+                if g == gene_upper and a == alt_upper and site in TUMOR_SITE_RULES.get((g, a), set()):
+                    # Prevent cross-tumor regimen display for BRAF V600E.
+                    local_therapies = list(therapies)
+                    if (g, a) == ("BRAF", "V600E"):
+                        local_therapies = (["Encorafenib + Cetuximab (CRC example)"]
+                                           if site == "colorectal"
+                                           else ["Dabrafenib + Trametinib (melanoma example)"])
                     var.tier = tier
-                    var.targeted_therapies = list(therapies)
+                    var.targeted_therapies = local_therapies
                     tier_1.append({
                         "gene": gene_upper,
                         "alteration": var.alteration,
                         "vaf_pct": f"{var.variant_allele_freq * 100:.1f}%",
                         "tier": "Illustrative candidate (clinical evidence not verified)",
-                        "therapies": therapies,
+                        "therapies": local_therapies,
                     })
                     matched = True
                     break
@@ -106,12 +140,15 @@ class TrialMatchingAgent:
         if profile.msi_status and "MSI-H" in profile.msi_status.upper():
             biomarkers.append("MSI-H")
 
+        site = tumor_site(profile.diagnosis)
         for trial in CLINICAL_TRIALS_DB:
             is_bio_match = any(
                 tb.upper() in biomarkers + biomarker_genes
                 for tb in trial.target_biomarkers
             )
-            if is_bio_match:
+            allowed = {tumor_site(diagnosis) for diagnosis in trial.organ_sites}
+            site_matches = "All Solid Tumors" in trial.organ_sites or site in allowed
+            if is_bio_match and site_matches:
                 matched_trials.append({
                     "nct_id": trial.nct_id,
                     "title": trial.title,
