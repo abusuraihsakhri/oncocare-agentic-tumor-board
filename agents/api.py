@@ -43,7 +43,7 @@ def require_api_key(x_api_key: Optional[str] = Header(default=None)) -> None:
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "oncocare-automated-tumor-board", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "oncocare-automated-tumor-board", "domain": "Clinical & Biomedical AI", "standard": "Nonclinical demonstration rules", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics", dependencies=[Depends(require_api_key)])
