@@ -48,6 +48,7 @@ def main(argv=None):
     # Serve command
     serve_parser = subparsers.add_parser("serve", help="Launch FastAPI REST server")
     serve_parser.add_argument("--port", type=int, default=8003, help="Port")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Bind address")
 
     args = parser.parse_args(argv)
     coordinator = MTBCoordinator()
@@ -140,6 +141,11 @@ def main(argv=None):
     if args.command == "chat":
         ans = coordinator.query_assistant(" ".join(args.query))
         print(f"\n[MTB-Orchestrator Assistant]:\n{ans}\n")
+        return 0
+
+    if args.command == "serve":
+        import uvicorn
+        uvicorn.run("mtb_orchestrator.server:create_app", factory=True, host=args.host, port=args.port)
         return 0
 
     return 0

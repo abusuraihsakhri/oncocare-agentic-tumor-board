@@ -24,7 +24,7 @@ PHI_PATTERNS = [
 
 
 class SecurityException(Exception):
-    """Raised when outbound data violates HIPAA Safe Harbor or contains raw PHI."""
+    """Raised when a common personal identifier pattern is detected. Not a complete PHI detector."""
     pass
 
 
@@ -88,7 +88,7 @@ class AuditTrail:
             "current_hash": signature,
         }
         self.logs.append(entry)
-        return entry
+        return dict(entry)
 
     def verify_integrity(self) -> bool:
         """Verify both chain linkage and cryptographic signatures."""
@@ -105,7 +105,7 @@ class AuditTrail:
         return True
 
     def get_trail(self) -> List[Dict[str, Any]]:
-        return self.logs
+        return [dict(entry) for entry in self.logs]
 
 
 _AUDIT_INSTANCE: Optional[AuditTrail] = None

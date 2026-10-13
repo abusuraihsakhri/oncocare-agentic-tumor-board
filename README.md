@@ -1,195 +1,77 @@
 # Oncocare Agentic Tumor Board
 
-> **Domain:** Medical Oncology & Cancer Staging Systems
-> **Reference Guidelines & Standards:** `AJCC Cancer Staging Manual & NCCN Clinical Practice Guidelines`
+An educational Python project illustrating molecular-tumor-board workflows, static biomarker examples, synthetic trial screening, medication-interaction flags, and generic quality-control rules.
 
-<div align="center">
+**For research and teaching only. Not validated for patient diagnosis, staging, treatment selection, clinical escalation, trial enrollment, or regulated patient-data processing.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## Browser demonstration
 
-</div>
+The standalone demonstration lives in [web/index.html](web/index.html). A GitHub Actions workflow publishes the web directory to GitHub Pages when the repository's Pages settings permit it. The published link should only be advertised after a successful deployment and live-site check.
 
----
+The public page runs entirely in the browser, never sends or stores user inputs, requires no tokens, and does not generate signed audit records. Pyodide or other Python-in-browser runtimes are neither necessary nor used.
 
-## 📖 What It Does
+## Implemented features
 
-**Oncocare Agentic Tumor Board** is an advanced analytical and computational platform implementing a multi-agent architecture for clinical decision support. The system provides:
+- **Generic QC agent system:** Deterministic rules for primary values above 25, secondary values above 12, descriptor keywords, and a critical flag. **These are example thresholds, not medically validated cutoffs.**
+- **Process-local audit trail:** HMAC-SHA256 hash chaining for generated QC entries. All records are lost on restart and no append-only durable store is provided.
+- **Identifier pattern screening:** Basic detection of common MRNs, SSNs, email addresses, telephone patterns, and some labeled names. It cannot ensure PHI removal, anonymization, or HIPAA compliance.
+- **Molecular example lookup:** Static variant/therapy illustrations with basic tumor-context gating, synthetic trial records prefixed DEMO-, and limited drug-interaction flags. No FDA, NCCN, AMP/ASCO/CAP, or real-time trial verification is performed.
+- **Mock assistant:** Deterministic example responses. No real OpenAI, Claude, or Ollama integration is implemented.
 
-- **Deterministic Calculation Engine**: Strict compliance with standard reference formulations and thresholds.
-- **Risk & Urgency Classification**: Multi-tier categorization with automated clinical/operational action recommendations.
-- **Validation & Guardrails**: Rigorous input bounds checking and anomaly detection.
-- **Genomic Variant Triage**: AMP/ASCO/CAP tier classification with FDA-approved therapy matching.
-- **Clinical Trial Matching**: Patient profile matching against trial eligibility criteria.
-- **Drug Interaction Auditing**: CYP3A4 and toxicity interaction detection.
+## Install
 
----
+Python 3.10+ is required.
 
-## ⚙️ Key Capabilities & Algorithmic Modules
-
-### Core Agents (`agents/`)
-- **SystemSupervisor**: Master orchestrator coordinating multi-worker evaluations.
-- **InvariantQCWorker**: Primary mathematical and protocol boundary auditor.
-- **SafetyEscalationWorker**: Safety boundary, toxicity, and emergency interlock detection.
-- **ProtocolConformanceWorker**: Spec conformance and anomaly triage.
-
-### MTB Orchestrator (`mtb_orchestrator/`)
-- **GenomicVariantTriageAgent**: Classifies somatic variants into AMP/ASCO/CAP Tiers.
-- **TrialMatchingAgent**: Matches patient biomarkers against clinical trial protocols.
-- **DrugInteractionAgent**: Audits prospective therapies against current medications.
-- **MTBCoordinator**: Central orchestrator for Molecular Tumor Board briefing synthesis.
-
-### Enrichment Engines (`enrichment.py`)
-- **OverviewEngine**, **GoalEngine**, and 6 additional domain-specific engines.
-- **OncocareagentictumorboardEnrichmentSuite**: Master coordinator executing all enrichment features.
-
----
-
-## 💻 Installation
-
-```bash
-# Clone the repository
+~~~bash
 git clone https://github.com/abusuraihsakhri/oncocare-agentic-tumor-board.git
 cd oncocare-agentic-tumor-board
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+~~~
 
-# Install dependencies
-pip install fastapi uvicorn pydantic pytest
+Generate two independent random secrets:
 
-# Set required environment variable for audit security
-export AUDIT_SECRET_KEY="your-secure-minimum-16-char-key-here"
-```
+~~~bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+export AUDIT_SECRET_KEY="<first-generated-secret>"
+export API_ACCESS_TOKEN="<second-generated-secret>"
+~~~
 
----
+## Use
 
-## 💻 CLI Quickstart & Usage
-
-### 1. Guided Interactive Mode
-```bash
-python cli.py audit
-```
-
-### 2. Available Commands
-```bash
-# Run single task evaluation
-python cli.py audit --task-id TASK-001 --target KEY-01 --primary 28.5 --secondary 14.2 --critical --status DISCORDANT
-
-# Query the supervisory assistant
-python cli.py chat "What is Osimertinib?"
-
-# Batch process CSV records
-python cli.py batch -i input.csv -o results.csv
-
-# Verify HMAC audit trail integrity
+~~~bash
+# Example QC commands
+python cli.py audit --primary 29.4 --secondary 14.8 --status DISCORDANT
 python cli.py verify-audit
 
-# Launch FastAPI REST server
+# Synthetic molecular-case report
+python -m mtb_orchestrator.cli audit
+python -m mtb_orchestrator.cli sample -o synthetic-profile.json
+
+# Local QC API (health route open, other endpoints require X-API-Key)
 python cli.py serve --host 127.0.0.1 --port 8000
-```
 
-### 3. MTB-Orchestrator Commands
-```bash
-# Generate Molecular Tumor Board briefing
-python -m mtb_orchestrator.cli audit
+# Separate synthetic molecular-case API
+uvicorn mtb_orchestrator.server:create_app --factory --host 127.0.0.1 --port 8003
 
-# Export sample oncology profile
-python -m mtb_orchestrator.cli sample -o profile.json
+# Tests and browser demo logic
+python -m pytest -q
+node web/demo-tests.js
+~~~
 
-# Query oncology knowledge assistant
-python -m mtb_orchestrator.cli chat "KRAS G12C inhibitors"
-```
+Pass the API_ACCESS_TOKEN value in the **X-API-Key** HTTP header to access API routes. The local API is intentionally separate from GitHub Pages, and the browser demo does not call it. Docker Compose binds to localhost, requires both environment secrets, and starts the core QC API with **docker compose up --build**.
 
----
+## Privacy and clinical limitations
 
-## 🛡️ Security & Enterprise Architecture
+Only use synthetic or previously de-identified records. Never enter real patient names, identifiers, identifiable clinical histories, or private medication information. Pattern screening can miss identifiers. Neither the local services nor the browser example have undergone clinical validation, formal software regulatory assessment, security certification, or controlled deployment review.
 
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition. Full signature verification on integrity checks.
-* **Secure Key Management:** Audit signing key must be provided via `AUDIT_SECRET_KEY` environment variable (minimum 16 characters). No hardcoded defaults.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+Synthetic trial records are not real NCT entries; their availability and eligibility are unknown. Static therapy associations and drug warnings are not prescribing guidance. In-memory HMAC entries can help detect mutation of retained entries, but do not establish a durable tamper-proof audit record or prove completeness.
 
-### Required Environment Variable
-```bash
-export AUDIT_SECRET_KEY="your-secure-minimum-16-char-key-here"
-```
+## Technology and compatibility
 
----
+Python, Pydantic 2, FastAPI, Uvicorn, pytest; browser HTML, CSS and JavaScript. The static demonstration targets current Chromium, Firefox, and Safari. It loads no third-party JavaScript, fonts, or other runtime resources.
 
-## 🧪 Testing & Verification
+## License
 
-Run the automated test suite:
-
-```bash
-# Set audit key for tests
-export AUDIT_SECRET_KEY="test-key-for-development-only-2026"
-
-# Run all tests
-pytest -v
-```
-
-Execute high-throughput batch simulation benchmarks:
-
-```bash
-python simulator.py 1000
-```
-
-Run the MTB-Orchestrator CLI:
-
-```bash
-python -m mtb_orchestrator.cli audit
-```
-
----
-
-## 🐳 Container Deployment
-
-```bash
-# Build and run with Docker
-docker build -t oncocare-agentic-tumor-board .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY="your-production-key" oncocare-agentic-tumor-board
-
-# Or use docker-compose
-AUDIT_SECRET_KEY="your-production-key" docker-compose up
-```
-
----
-
-## 📁 Project Structure
-
-```
-oncocare-agentic-tumor-board/
-├── agents/                    # Core agent modules
-│   ├── api.py                # FastAPI REST endpoints
-│   ├── base.py               # Security, PHI guard, HMAC audit
-│   ├── models.py             # Pydantic data models
-│   ├── supervisor.py         # Master orchestrator
-│   ├── workers.py            # Specialized domain workers
-│   ├── llm_factory.py        # LLM provider factory
-│   ├── learning.py           # Bayesian calibration engine
-│   ├── metrics.py            # Prometheus metrics collector
-│   └── streamer.py           # WebSocket telemetry broadcaster
-├── mtb_orchestrator/          # Molecular Tumor Board modules
-│   ├── agents.py             # Genomic triage, trial matching, drug interactions
-│   ├── models.py             # Oncology data models
-│   ├── cli.py                # MTB-specific CLI
-│   └── server.py             # MTB FastAPI server
-├── tests/                     # Pytest test suite
-├── web/                       # Operations console (HTML/JS)
-├── cli.py                     # Main CLI entry point
-├── simulator.py               # High-throughput simulation
-├── enrichment.py              # Domain enrichment engines
-├── Dockerfile                 # Container build
-├── docker-compose.yml         # Multi-container orchestration
-└── pyproject.toml             # Project configuration
-```
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+[MIT](LICENSE).

@@ -30,7 +30,8 @@ def test_genomic_variant_triage():
         msi_status="MSI-H",
     )
     res = agent.evaluate(profile)
-    assert len(res["tier_1"]) >= 3  # BRAF V600E, TMB-H, MSI-H
+    assert len(res["tier_1"]) >= 1  # Context-matched BRAF example
+    assert len(res["tier_2"]) >= 3  # APC unclassified; TMB and MSI screening flags
     assert any("Encorafenib" in "".join(t["therapies"]) or "Dabrafenib" in "".join(t["therapies"]) for t in res["tier_1"])
 
 

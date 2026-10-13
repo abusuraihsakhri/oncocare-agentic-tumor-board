@@ -1,12 +1,15 @@
 """
 Pydantic v2 schemas and data definitions for Oncocare Automated Tumor Board.
 Domain: Clinical & Biomedical AI
-Standard: CAP / CLSI / ISO Standards
+Standard: Nonclinical demonstration rules
 """
 import datetime
 from enum import Enum
 from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+import json
+import math
+from .base import PHIGuard, SecurityException
 
 
 class UrgencyLevel(str, Enum):
@@ -24,12 +27,24 @@ class SystemIntegrityStatus(str, Enum):
 class SystemTaskPayload(BaseModel):
     task_id: str = Field(..., description="Unique task / case identifier")
     target_identifier: str = Field(..., description="Entity, patient key, or genomic/cryptographic target")
-    primary_metric: float = Field(..., description="Primary domain measurement or score")
-    secondary_metric: float = Field(default=0.0, description="Secondary kinetic or confidence score")
+    primary_metric: float = Field(..., allow_inf_nan=False, description="Primary demonstrator measurement (not a clinical threshold)")
+    secondary_metric: float = Field(default=0.0, allow_inf_nan=False, description="Secondary demonstrator measurement")
     status_descriptor: str = Field(default="NOMINAL", description="Status code or phenotype descriptor")
     is_critical_flag: bool = Field(default=False, description="Emergency escalation or high priority trigger")
     attributes: Dict[str, Any] = Field(default_factory=dict, description="Metadata key-value pairs")
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
+
+    @model_validator(mode="after")
+    def reject_common_identifiers(self):
+        """Best-effort input screening; not a replacement for de-identification."""
+        values = (self.task_id, self.target_identifier, self.status_descriptor, self.timestamp,
+                  json.dumps(self.attributes, default=str, ensure_ascii=False))
+        try:
+            for value in values:
+                PHIGuard.assert_no_phi(value)
+        except SecurityException as exc:
+            raise ValueError("Potential personal identifier detected; use synthetic or de-identified inputs") from exc
+        return self
 
 
 class AgentAlert(BaseModel):
@@ -39,7 +54,7 @@ class AgentAlert(BaseModel):
     summary: str
     technical_details: str
     actionable_remediation: str
-    standard_reference: str = "CAP / CLSI / ISO Standards"
+    standard_reference: str = "Nonclinical demonstration rules"
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -57,7 +72,7 @@ class ConsensusDossier(BaseModel):
     total_alerts: int
     critical_alerts_count: int
     alerts: List[AgentAlert]
-    standard_reference: str = "CAP / CLSI / ISO Standards"
+    standard_reference: str = "Nonclinical demonstration rules"
     consensus_summary: str
     audit_hash: str
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())

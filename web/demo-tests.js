@@ -1,0 +1,13 @@
+"use strict";
+const assert = require("node:assert/strict");
+const {evaluateMtb,evaluateQc} = require("./app.js");
+assert.equal(evaluateMtb("lung","KRAS G12C").status,"Illustrative association found");
+assert.equal(evaluateMtb("breast","KRAS G12C").status,"No context-matched example");
+assert.equal(evaluateMtb("lung","TP53 R273H").status,"No context-matched example");
+assert.equal(evaluateQc(10,5,"NOMINAL",false).urgency,"ROUTINE");
+assert.equal(evaluateQc(30,5,"NOMINAL",false).urgency,"ELEVATED_RISK");
+assert.equal(evaluateQc(5,13,"NOMINAL",false).urgency,"ELEVATED_RISK");
+assert.equal(evaluateQc(5,5,"DISCORDANT_ANOMALY",false).urgency,"ELEVATED_RISK");
+assert.equal(evaluateQc(5,5,"NOMINAL",true).urgency,"CRITICAL_STAT_PANIC");
+assert.throws(()=>evaluateQc(Infinity,3,"NOMINAL",false));
+console.log("Static educational demo rules passed.");

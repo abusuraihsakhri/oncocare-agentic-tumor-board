@@ -1,0 +1,38 @@
+:root {color-scheme:dark;--bg:#0c1321;--surface:#141e30;--surface2:#101929;--stroke:#2b3b53;--text:#ecf2fb;--muted:#a9b9cf;--accent:#89c6ff;--warning:#ffd99a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 90% 0%,#1c3150 0%,transparent 38%),var(--bg);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+a{color:var(--accent)}
+a:hover{text-decoration:none}
+.shell{width:min(1140px,calc(100% - 48px));margin-inline:auto}
+.skip{position:absolute;top:-100px;left:12px;background:#fff;color:#111;padding:10px;z-index:2}
+.skip:focus{top:12px}
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 0;border-bottom:1px solid var(--stroke)}
+.brand{display:flex;align-items:center;gap:14px}.mark{display:grid;place-items:center;width:45px;height:45px;border:1px solid var(--accent);border-radius:12px;color:var(--accent);font-weight:800;font-size:24px}
+.eyebrow{color:var(--accent);letter-spacing:.13em;text-transform:uppercase;font-weight:700;font-size:11px;margin:0 0 6px}
+h1,h2,h3,p{margin-top:0}h1{font-size:21px;line-height:1;margin:0}
+h2{font-size:clamp(29px,4.2vw,46px);max-width:780px;line-height:1.16;letter-spacing:-.035em;margin-bottom:18px}
+h3{font-size:19px;margin:0 0 3px}.tag{border:1px solid var(--stroke);border-radius:999px;padding:7px 13px;color:var(--muted);font-size:12px}
+.intro{padding:44px 0 30px}.intro>p:not(.eyebrow){max-width:840px;color:var(--muted);margin-bottom:12px}
+.intro .notice{margin-top:20px;padding:13px 17px;border-left:3px solid var(--warning);background:#2b2731;border-radius:0 7px 7px 0;color:#f8e7cc!important}
+.columns{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.panel{background:var(--surface);border:1px solid var(--stroke);border-radius:16px;padding:25px;min-width:0}
+.panel-heading{display:flex;align-items:flex-start;gap:15px;margin-bottom:23px}.panel-heading p{margin:0;color:var(--muted);font-size:13px}
+.number{font-weight:700;font-size:12px;background:#233853;color:var(--accent);border-radius:9px;padding:6px 9px}
+.field{margin-bottom:17px}.fields-inline{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+label{font-size:13px;display:block;margin-bottom:7px;color:#d8e4f4;font-weight:600}
+input:not([type=checkbox]),select{width:100%;min-height:44px;border-radius:8px;background:var(--surface2);border:1px solid #41516a;color:var(--text);font:inherit;font-size:14px;padding:9px 11px}
+option{background:var(--surface2)}:focus-visible{outline:3px solid #d4efff;outline-offset:3px}
+.checkline{display:flex;align-items:center;gap:10px;margin:10px 0 20px;font-size:14px}.checkline input{width:18px;height:18px;accent-color:var(--accent)}
+button{width:100%;border:0;border-radius:9px;min-height:45px;padding:10px 14px;background:var(--accent);color:#092039;font:inherit;font-weight:750;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+button:hover{background:#b4ddff}
+.result{background:var(--surface2);border:1px solid var(--stroke);border-radius:10px;min-height:125px;margin-top:21px;padding:17px;overflow-wrap:anywhere}
+.result h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 9px}
+.result p,.result li{font-size:14px;color:#d8e4f4;margin:0 0 8px}
+.result ul{margin:0;padding-left:19px}.result .placeholder{color:var(--muted)}
+.result .status{font-size:21px;font-weight:750;margin-bottom:9px;color:#fff}
+.footnote{margin:28px 0 38px;border:1px solid var(--stroke);border-radius:12px;padding:22px 25px;background:rgba(20,30,48,.5)}
+.footnote h3{margin-bottom:8px}.footnote p{font-size:14px;color:var(--muted);max-width:970px;margin-bottom:10px}
+.footer{border-top:1px solid var(--stroke);padding:22px 0 35px;display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px}
+@media(max-width:800px){.columns{grid-template-columns:1fr}.intro{padding-top:30px}.masthead{align-items:flex-start}.tag{max-width:135px;text-align:center}.panel{padding:20px}}
+@media(max-width:480px){.shell{width:calc(100% - 28px)}.fields-inline{grid-template-columns:1fr;gap:0}.footer{flex-direction:column}}
