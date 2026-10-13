@@ -46,5 +46,7 @@ jobs:
           else:
               raise AssertionError("PHI pattern detection failed")
           PY
-      - name: Check browser JavaScript syntax
-        run: node --check web/app.js
+      - name: Check browser JavaScript syntax and demonstration rules
+        run: |
+          node --check web/app.js
+          node web/demo-tests.js
