@@ -95,3 +95,9 @@ def test_invalid_somatic_variant_and_performance():
         SomaticVariant("KRAS", "G12C", float("nan"))
     with pytest.raises(ValueError):
         PatientOncologyProfile(case_id="X", diagnosis="NSCLC", stage="IV", ecog_ps=8)
+
+
+def test_simulator_rejects_zero_iterations():
+    from simulator import run_simulation
+    with pytest.raises(ValueError, match="positive"):
+        run_simulation(0)
