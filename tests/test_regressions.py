@@ -112,3 +112,9 @@ def test_molecular_cli_serve_launches_factory(monkeypatch):
     assert calls[0][0] == ("mtb_orchestrator.server:create_app",)
     assert calls[0][1]["factory"] is True
     assert calls[0][1]["port"] == 8009
+
+
+def test_unimplemented_provider_does_not_silently_act_as_real_llm():
+    from agents.llm_factory import LLMFactory
+    with pytest.raises(ValueError, match="Only the mock provider"):
+        LLMFactory.create("openai")
