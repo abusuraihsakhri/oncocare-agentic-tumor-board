@@ -101,3 +101,14 @@ def test_simulator_rejects_zero_iterations():
     from simulator import run_simulation
     with pytest.raises(ValueError, match="positive"):
         run_simulation(0)
+
+
+def test_molecular_cli_serve_launches_factory(monkeypatch):
+    from mtb_orchestrator.cli import main
+    import uvicorn
+    calls = []
+    monkeypatch.setattr(uvicorn, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
+    assert main(["serve", "--host", "127.0.0.1", "--port", "8009"]) == 0
+    assert calls[0][0] == ("mtb_orchestrator.server:create_app",)
+    assert calls[0][1]["factory"] is True
+    assert calls[0][1]["port"] == 8009

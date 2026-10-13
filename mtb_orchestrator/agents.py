@@ -82,7 +82,7 @@ class GenomicVariantTriageAgent:
                         local_therapies = (["Encorafenib + Cetuximab (CRC example)"]
                                            if site == "colorectal"
                                            else ["Dabrafenib + Trametinib (melanoma example)"])
-                    var.tier = tier
+                    # Example associations must not assign a formal evidence tier.
                     var.targeted_therapies = local_therapies
                     tier_1.append({
                         "gene": gene_upper,
