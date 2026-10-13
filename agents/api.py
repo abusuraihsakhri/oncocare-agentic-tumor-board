@@ -60,8 +60,8 @@ def api_audit(payload: SystemTaskPayload):
     try:
         dossier = supervisor.process_task(payload)
         return dossier.to_dict()
-    except SecurityException as e:
-        raise HTTPException(status_code=422, detail=f"Security violation: {str(e)}")
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Potential identifier detected; use synthetic inputs")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

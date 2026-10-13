@@ -104,8 +104,8 @@ class GenomicVariantTriageAgent:
                 })
 
         # High TMB
-        if profile.tmb_mut_per_mb and profile.tmb_mut_per_mb >= 10.0:
-            tier_1.append({
+        if profile.tmb_mut_per_mb is not None and profile.tmb_mut_per_mb >= 10.0:
+            tier_2.append({
                 "gene": "TMB-High",
                 "alteration": f"{profile.tmb_mut_per_mb:.1f} mut/Mb (>=10 threshold)",
                 "vaf_pct": "N/A",
@@ -115,7 +115,7 @@ class GenomicVariantTriageAgent:
 
         # MSI-High
         if profile.msi_status and "MSI-H" in profile.msi_status.upper():
-            tier_1.append({
+            tier_2.append({
                 "gene": "MSI-High / dMMR",
                 "alteration": "Microsatellite Instability High",
                 "vaf_pct": "N/A",

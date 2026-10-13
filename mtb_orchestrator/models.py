@@ -21,7 +21,7 @@ class SomaticVariant:
     gene: str                   # e.g., "EGFR", "BRAF", "KRAS", "BRCA1", "PIK3CA"
     alteration: str             # e.g., "L858R", "V600E", "G12C", "Exon 19 del"
     variant_allele_freq: float  # e.g., 0.35 (35%)
-    tier: VariantTier = VariantTier.TIER_I_STRONG
+    tier: VariantTier = VariantTier.TIER_III_UNKNOWN
     targeted_therapies: List[str] = field(default_factory=list)
 
     def __post_init__(self):
