@@ -1,26 +1,39 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "oncocare-automated-tumor-board"
-version = "1.0.0"
-description = "Autonomous Molecular Tumor Board & Clinical Trial Matching Automated System."
+name = "oncocare-agentic-tumor-board"
+version = "1.0.1"
+description = "Educational molecular tumor board and rule-based quality-control demonstrations"
 readme = "README.md"
-authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
-license = { text = "MIT" }
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Dr. Abu Suraih Sakhri" }]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Scientific/Engineering :: Medical Science Apps",
 ]
-requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+  "pydantic>=2.5,<3",
+  "fastapi>=0.110,<1",
+  "uvicorn>=0.29,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1"]
 
 [project.scripts]
 mtb-orchestrator = "mtb_orchestrator.cli:main"
+oncocare-audit = "cli:main"
+
+[tool.setuptools]
+py-modules = ["cli", "enrichment", "simulator", "mtb_orchestrator_app"]
+
+[tool.setuptools.packages.find]
+include = ["agents", "agents.*", "mtb_orchestrator", "mtb_orchestrator.*"]
 
 [project.urls]
-Homepage = "https://github.com/abusuraihsakhri/oncocare-automated-tumor-board"
-Repository = "https://github.com/abusuraihsakhri/oncocare-automated-tumor-board.git"
+Homepage = "https://github.com/abusuraihsakhri/oncocare-agentic-tumor-board"
+Repository = "https://github.com/abusuraihsakhri/oncocare-agentic-tumor-board"

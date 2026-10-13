@@ -1,8 +1,10 @@
 """
 FastAPI REST API Server for Oncocare Automated Tumor Board.
 """
-from typing import Dict, Any, List
-from fastapi import FastAPI, HTTPException, Query
+from typing import Dict, Any, List, Optional
+import os
+import hmac
+from fastapi import FastAPI, HTTPException, Query, Depends, Header
 from pydantic import BaseModel, Field, field_validator
 from .base import AuditLogger, PHIGuard, SecurityException
 from .models import SystemTaskPayload, ConsensusDossier
@@ -30,13 +32,21 @@ class ChatRequest(BaseModel):
             raise ValueError(str(e))
         return v.strip()
 
+def require_api_key(x_api_key: Optional[str] = Header(default=None)) -> None:
+    """Fail closed unless a suitably long API token is configured."""
+    configured = os.environ.get("API_ACCESS_TOKEN", "")
+    if len(configured) < 32:
+        raise HTTPException(status_code=503, detail="API_ACCESS_TOKEN is not configured")
+    if not x_api_key or not hmac.compare_digest(x_api_key, configured):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
 
 @app.get("/health")
 def health():
     return {"status": "HEALTHY", "service": "oncocare-automated-tumor-board", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
 
 
-@app.get("/metrics")
+@app.get("/metrics", dependencies=[Depends(require_api_key)])
 def metrics():
     return {
         "dossiers_processed_total": len(supervisor.dossier_registry),
@@ -45,7 +55,7 @@ def metrics():
     }
 
 
-@app.post("/api/audit")
+@app.post("/api/audit", dependencies=[Depends(require_api_key)])
 def api_audit(payload: SystemTaskPayload):
     try:
         dossier = supervisor.process_task(payload)
@@ -56,7 +66,7 @@ def api_audit(payload: SystemTaskPayload):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", dependencies=[Depends(require_api_key)])
 def api_chat(req: ChatRequest):
     try:
         ans = supervisor.query_supervisory_chat(req.query)
@@ -67,7 +77,7 @@ def api_chat(req: ChatRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/audit/logs")
+@app.get("/api/audit/logs", dependencies=[Depends(require_api_key)])
 def api_audit_logs(limit: int = Query(default=100, ge=1, le=10000, description="Maximum number of audit entries to return")):
     trail = AuditLogger.get_trail()
     return {
